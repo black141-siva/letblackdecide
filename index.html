@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LET BLACK DECIDE</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070707;color:#f4f4f4;font-family:Inter,system-ui,sans-serif}
+header{text-align:center;padding:30px 18px 22px;border-bottom:1px solid #1c1c1c}.logo{font-size:clamp(30px,8vw,56px);font-weight:950;letter-spacing:-2.5px}.tag{color:#888;margin-top:5px}
+nav{display:flex;gap:8px;overflow:auto;padding:14px;justify-content:center;border-bottom:1px solid #151515}button{font:inherit;font-weight:800;cursor:pointer;border:1px solid #292929;background:#111;color:#ddd;border-radius:12px;padding:11px 15px}button.active,button.primary{background:#fff;color:#000;border-color:#fff}
+main{max-width:920px;margin:auto;padding:28px 16px}.panel{background:#0d0d0d;border:1px solid #222;border-radius:24px;padding:24px;text-align:center}h1{margin:6px 0;font-size:clamp(28px,6vw,42px)}.muted{color:#888}.hidden{display:none}.stage{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}.result{font-size:34px;font-weight:950;min-height:42px;max-width:100%;overflow-wrap:anywhere}
+.coin{width:155px;height:155px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#eee,#777);color:#111;font-size:20px;font-weight:950;box-shadow:0 15px 45px #000}.flip{animation:flip .8s ease}@keyframes flip{0%{transform:rotateY(0)}100%{transform:rotateY(1080deg)}}
+textarea{width:100%;resize:vertical;background:#080808;color:#fff;border:1px solid #292929;border-radius:12px;padding:13px;font:inherit}.wheelwrap{width:min(330px,80vw);aspect-ratio:1;margin:12px auto;position:relative}.wheelwrap canvas{width:100%;height:100%}.pointer{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:28px;z-index:2}
+footer{text-align:center;color:#555;padding:30px 16px 40px;font-size:14px}footer strong{color:#888} .credit{margin-top:9px;color:#888;font-weight:750}.small{margin-top:4px;color:#555}
+</style></head>
+<body>
+<header><div class="logo">LET BLACK DECIDE</div><div class="tag">Stop overthinking. Let chance decide.</div></header>
+<nav>
+<button class="active" data-mode="coin">🪙 Coin</button><button data-mode="wheel">🎡 Spin</button><button data-mode="dice">🎲 Dice</button><button data-mode="pick">🎯 Pick</button><button data-mode="yesno">⚖️ Yes / No</button>
+</nav>
+<main><section class="panel">
+<div id="coin" class="mode"><h1>Coin Flip</h1><p class="muted">Two choices. One decision.</p><div class="stage"><div id="coinFace" class="coin">?</div><div id="coinOut" class="result"></div></div><button class="primary" onclick="flipCoin()">FLIP IT</button></div>
+<div id="wheel" class="mode hidden"><h1>Spin Wheel</h1><p class="muted">One choice per line.</p><textarea id="wheelText" rows="4">Pizza
+Burger
+Sushi
+Something else</textarea><div class="wheelwrap"><div class="pointer">▼</div><canvas id="canvas" width="600" height="600"></canvas></div><div id="wheelOut" class="result"></div><button class="primary" onclick="spin()">SPIN</button></div>
+<div id="dice" class="mode hidden"><h1>Dice Roll</h1><p class="muted">Roll it. Accept it.</p><div class="stage"><div id="diceOut" class="result" style="font-size:110px">?</div></div><button class="primary" onclick="roll()">ROLL D6</button></div>
+<div id="pick" class="mode hidden"><h1>Pick One</h1><p class="muted">One choice per line.</p><textarea id="pickText" rows="7" placeholder="Choice 1&#10;Choice 2&#10;Choice 3"></textarea><div class="stage"><div id="pickOut" class="result"></div></div><button class="primary" onclick="pick()">PICK FOR ME</button></div>
+<div id="yesno" class="mode hidden"><h1>Yes or No?</h1><p class="muted">Ask the question. Don't argue with BLACK.</p><div class="stage"><div id="ynOut" class="result">?</div></div><button class="primary" onclick="yn()">DECIDE</button></div>
+</section></main>
+<footer><div>BLACK CHOICE ENGINE • Runs in your browser</div><div class="credit">Created with care by <strong>Siva Narayanan</strong></div><div class="small">Built to make the little decisions easier.</div></footer>
+<script>
+const ids=["coin","wheel","dice","pick","yesno"];
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");ids.forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==b.dataset.mode));if(b.dataset.mode==="wheel")draw()});
+function flipCoin(){let c=document.getElementById("coinFace"),o=document.getElementById("coinOut");c.classList.remove("flip");void c.offsetWidth;c.classList.add("flip");o.textContent="";setTimeout(()=>{let v=Math.random()<.5?"HEADS":"TAILS";c.textContent=v;o.textContent=v},650)}
+function roll(){document.getElementById("diceOut").textContent=Math.floor(Math.random()*6)+1}
+function yn(){document.getElementById("ynOut").textContent=Math.random()<.5?"YES":"NO"}
+function pick(){let a=document.getElementById("pickText").value.split("\n").map(x=>x.trim()).filter(Boolean);document.getElementById("pickOut").textContent=a.length?a[Math.floor(Math.random()*a.length)]:"Add some choices first."}
+const cv=document.getElementById("canvas"),ctx=cv.getContext("2d");let angle=0;
+function opts(){return document.getElementById("wheelText").value.split("\n").map(x=>x.trim()).filter(Boolean)}
+function draw(){let a=opts();if(!a.length)a=["Add choices"];let n=a.length;ctx.clearRect(0,0,600,600);for(let i=0;i<n;i++){let s=angle+i*2*Math.PI/n,e=angle+(i+1)*2*Math.PI/n;ctx.beginPath();ctx.moveTo(300,300);ctx.arc(300,300,280,s,e);ctx.closePath();ctx.fillStyle=`hsl(${i*360/n} 55% 45%)`;ctx.fill();ctx.strokeStyle="#080808";ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.translate(300,300);ctx.rotate((s+e)/2);ctx.fillStyle="#fff";ctx.font="bold 21px system-ui";ctx.textAlign="right";ctx.fillText(a[i].slice(0,22),260,7);ctx.restore()}}
+function spin(){let a=opts();if(a.length<2){document.getElementById("wheelOut").textContent="Add at least 2 choices.";return}let winner=Math.floor(Math.random()*a.length),n=a.length,slice=2*Math.PI/n,target=-Math.PI/2-(winner+.5)*slice,start=angle,final=target+10*Math.PI,t0=performance.now();document.getElementById("wheelOut").textContent="";function anim(t){let p=Math.min(1,(t-t0)/2600),e=1-Math.pow(1-p,3);angle=start+(final-start)*e;draw();if(p<1)requestAnimationFrame(anim);else document.getElementById("wheelOut").textContent=a[winner]}requestAnimationFrame(anim)}
+document.getElementById("wheelText").addEventListener("input",draw);draw();
+</script></body></html>
